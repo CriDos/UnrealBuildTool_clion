@@ -1,12 +1,11 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 
 namespace UnrealBuildTool
 {
-    internal class Program
+    internal static class Program
     {
         public static void Main(string[] args)
         {
@@ -14,19 +13,18 @@ namespace UnrealBuildTool
                            "/UnrealBuildTool_clion.exe";
             Process.Start(realPath, string.Join(" ", args))?.WaitForExit();
 
-            if (!args.Any(s => s.StartsWith("-project=")))
+            var findParams = args.Where(s => s.StartsWith("-project=")).ToArray();
+            if (findParams.Length == 0)
                 return;
 
-            var findParam = args.Single(s => s.StartsWith("-project="));
-            var projectFilePath = findParam.Split('=').Last();
+            var projectFilePath = findParams.First().Split('=').Last();
             var cMakeListsFilePath = new FileInfo(projectFilePath).DirectoryName + "/CMakeLists.txt";
 
-            if (File.Exists(cMakeListsFilePath))
-            {
-                var fileContent = File.ReadAllText(cMakeListsFilePath);
-                var newFileContent = fileContent.Replace('\\', '/');
-                File.WriteAllText(cMakeListsFilePath, newFileContent);
-            }
+            if (!File.Exists(cMakeListsFilePath))
+                return;
+
+            var fileContent = File.ReadAllText(cMakeListsFilePath).Replace('\\', '/');
+            File.WriteAllText(cMakeListsFilePath, fileContent);
         }
     }
 }
